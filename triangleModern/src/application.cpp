@@ -87,23 +87,50 @@ int main(int, char**)
 
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << std::endl;
 
-    constexpr unsigned vertex_position{6};
     constexpr unsigned vertex_components{2};
-    std::array<float, vertex_position * vertex_components> positions{
+    constexpr unsigned unique_vertices{8};
+    std::array<float, unique_vertices * vertex_components> vertices{
         // clang-format off
+        // Vertices are
         -0.5f , -0.5f ,
          0.5f , -0.5f ,
          0.5f , 0.5f  ,
-         0.5f , 0.5f  ,
         -0.5f , 0.5f  ,
-        -0.5f , -0.5f
+         0.0f , 1.0f  ,
+         0.0f , -0.5f ,
+         0.5f , -1.0f ,
+        -0.5f , -1.0f
         // clang-format on
     };
 
-    GLuint buffer_id{};
-    glGenBuffers(1, &buffer_id);
-    glBindBuffer(GL_ARRAY_BUFFER, buffer_id);
-    glBufferData(GL_ARRAY_BUFFER, positions.size() * sizeof(float), &positions, GL_STATIC_DRAW);
+    constexpr unsigned vertex_position{4 * 3};
+    std::array<unsigned, vertex_position> indices{
+        0,
+        1,
+        2,  // First Triangle
+        2,
+        3,
+        0,  // Second Triangle
+        3,
+        4,
+        2,  // Third Triangle
+        5,
+        6,
+        7  // Fourth Triangle
+
+    };
+
+    GLuint vertex_buffer_object{};
+    glGenBuffers(1, &vertex_buffer_object);
+    constexpr auto vertex_buffer_type{GL_ARRAY_BUFFER};
+    glBindBuffer(vertex_buffer_type, vertex_buffer_object);
+    glBufferData(vertex_buffer_type, vertices.size() * sizeof(float), &vertices, GL_STATIC_DRAW);
+
+    GLuint index_buffer_object{};
+    glGenBuffers(1, &index_buffer_object);
+    constexpr auto index_buffer_type{GL_ELEMENT_ARRAY_BUFFER};
+    glBindBuffer(index_buffer_type, index_buffer_object);
+    glBufferData(index_buffer_type, indices.size() * sizeof(unsigned), &indices, GL_STATIC_DRAW);
 
     constexpr auto normalized{GL_FALSE};
     constexpr auto vertex_datatype{GL_FLOAT};
@@ -128,13 +155,11 @@ int main(int, char**)
     GLuint shader = CreateShader(vertex_shader_file, fragment_shader_file);
     glUseProgram(shader);
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
     while (!glfwWindowShouldClose(window))
     {
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glDrawArrays(GL_TRIANGLES, 0, vertex_position);
+        glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr);
 
         glfwSwapBuffers(window);
 
