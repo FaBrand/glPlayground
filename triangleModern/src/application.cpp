@@ -4,6 +4,7 @@
 #include <array>
 #include <iostream>
 #include <memory>
+#include <string>
 
 GLuint CompileShader(GLuint type, const std::string& source)
 {
@@ -23,7 +24,7 @@ GLuint CompileShader(GLuint type, const std::string& source)
         auto output = std::make_unique<char[]>(length);
 
         glGetShaderInfoLog(id, length, &length, output.get());
-        std::cout << "Failed to compile" << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader!"
+        std::cout << "Failed to compile " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader!"
                   << std::endl;
 
         std::cout << output.get() << std::endl;
@@ -59,7 +60,7 @@ int main(int, char**)
         return -1;
     }
 
-    GLFWwindow* window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(640, 480, "Hello Triangle", NULL, NULL);
     if (!window)
     {
         std::cout << "Could not create window" << std::endl;
@@ -75,12 +76,11 @@ int main(int, char**)
         return -1;
     }
 
-    std::cout << glGetString(GL_VERSION) << std::endl;
+    std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << std::endl;
 
     constexpr unsigned vertex_position{3};
     constexpr unsigned vertex_components{2};
-
-    std::array<float, vertex_position * vertex_components> positions{-0.5f, 0.5f, 0.0f, 0.5f, -0.5f, -0.5f};
+    std::array<float, vertex_position * vertex_components> positions{-0.5f, -0.5f, 0.0f, 0.5f, 0.5f, -0.5f};
 
     GLuint buffer_id{};
     glGenBuffers(1, &buffer_id);
@@ -96,6 +96,56 @@ int main(int, char**)
         attribute_index, vertex_components, vertex_datatype, normalized, sizeof(float) * vertex_components, offset);
 
     glEnableVertexAttribArray(attribute_index);
+
+#define GLSL_VERSION_330_SUPPORTED false
+#if GLSL_VERSION_330_SUPPORTED
+    // Normally this should work. Probably some driver issues?
+    // OpenGl Version: 3.0 Mesa 17.2.4
+    // Failed to compile vertex shader!
+    // 0:1(10): error: GLSL 3.30 is not supported. Supported versions are: 1.10, 1.20, 1.30, 1.00 ES, and 3.00 ES
+
+    std::string vertex_shader{
+        "#version 330 \n"
+        "\n"
+        "layout(location = 0) in vec4 position;\n"
+        "\n"
+        "void main()\n"
+        "{\n"
+        "   gl_Position = position;\n"
+        "}\n"};
+
+    std::string fragment_shader{
+        "#version 330 \n"
+        "\n"
+        "void main()\n"
+        "{\n"
+        "   gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);\n"
+        "}\n"};
+
+#else
+
+    std::string vertex_shader{
+        "#version 100 \n"
+        "\n"
+        "attribute vec2 position;\n"
+        "\n"
+        "void main()\n"
+        "{\n"
+        "   gl_Position = vec4(position, 0.0, 1.0);\n"
+        "}\n"};
+
+    std::string fragment_shader{
+        "#version 100 \n"
+        "\n"
+        "void main()\n"
+        "{\n"
+        "   gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);\n"
+        "}\n"};
+
+#endif
+
+    GLuint shader = CreateShader(vertex_shader, fragment_shader);
+    glUseProgram(shader);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
