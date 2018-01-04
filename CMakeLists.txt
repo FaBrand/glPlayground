@@ -13,4 +13,5 @@ set(CMAKE_CXX_EXTENSIONS off)
 add_compile_options(-Wall -Wextra -Wpedantic)
 
 add_subdirectory(triangleLegacy)
+add_subdirectory(triangleModern)
 
