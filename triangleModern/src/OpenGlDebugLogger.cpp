@@ -1,11 +1,12 @@
 #include <functional>
+#include <iomanip>
 #include <iostream>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include <map>
 #include "OpenGlDebugLogger.h"
-
 void OpenGlDebugLogger::Enable()
 {
     CheckDebuggerAvailability();
@@ -28,7 +29,7 @@ void OpenGlDebugLogger::EnableDebugging() const
 
     glDebugMessageCallback(OpenGlDebugLogger::OpenGlDebugCallback, nullptr);
 
-    GLuint unusedIds = 0;
+    GLuint unusedIds{0};
     glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, &unusedIds, true);
 }
 
@@ -72,56 +73,32 @@ void OpenGlDebugLogger::OpenGlDebugCallback(GLenum /* source */,
                                             const GLchar* message,
                                             const void* /* userParam */)
 {
-
     if (severity < logging_level)
         return;
 
-    std::cout << "---------------------opengl-callback-start------------" << std::endl;
-    std::cout << "message: " << message << std::endl;
-    std::cout << "type: ";
-    switch (type)
-    {
-        case GL_DEBUG_TYPE_ERROR:
-            std::cout << "ERROR";
-            break;
-        case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
-            std::cout << "DEPRECATED_BEHAVIOR";
-            break;
-        case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
-            std::cout << "UNDEFINED_BEHAVIOR";
-            break;
-        case GL_DEBUG_TYPE_PORTABILITY:
-            std::cout << "PORTABILITY";
-            break;
-        case GL_DEBUG_TYPE_PERFORMANCE:
-            std::cout << "PERFORMANCE";
-            break;
-        case GL_DEBUG_TYPE_OTHER:
-            std::cout << "OTHER";
-            break;
-    }
-    std::cout << std::endl;
+    const std::map<GLenum, std::string> debug_type_map{{GL_DEBUG_TYPE_ERROR, "ERROR"},
+                                                       {GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR, "DEPRECATED_BEHAVIOR"},
+                                                       {GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR, "UNDEFINED_BEHAVIOR"},
+                                                       {GL_DEBUG_TYPE_PORTABILITY, "PORTABILITY"},
+                                                       {GL_DEBUG_TYPE_PERFORMANCE, "PERFORMANCE"},
+                                                       {GL_DEBUG_TYPE_OTHER, "OTHER"}};
 
-    std::cout << "id: " << id << std::endl;
-    std::cout << "severity: ";
-    switch (severity)
+    const std::map<GLenum, std::string> severity_map{{GL_DEBUG_SEVERITY_LOW, "LOW"},
+                                                     {GL_DEBUG_SEVERITY_MEDIUM, "MEDIUM"},
+                                                     {GL_DEBUG_SEVERITY_HIGH, "HIGH"},
+                                                     {GL_DEBUG_SEVERITY_NOTIFICATION, "NOTIFICATION"}};
+
+    std::cout << "---------------------opengl-callback-start------------" << std::endl;
+    try
     {
-        case GL_DEBUG_SEVERITY_LOW:
-            std::cout << "LOW";
-            break;
-        case GL_DEBUG_SEVERITY_MEDIUM:
-            std::cout << "MEDIUM";
-            break;
-        case GL_DEBUG_SEVERITY_HIGH:
-            std::cout << "HIGH";
-            break;
-        case GL_DEBUG_SEVERITY_NOTIFICATION:
-            std::cout << "NOTIFICATION";
-            break;
-        default:
-            std::cout << "UNKNOWN";
-            break;
+        std::cout << "message: " << message << std::endl;
+        std::cout << "type: " << debug_type_map.at(type) << std::endl;
+        std::cout << "id: " << id << std::endl;
+        std::cout << "severity: " << severity_map.at(severity) << std::endl;
     }
-    std::cout << std::endl;
+    catch (std::out_of_range& e)
+    {
+        std::cout << "Unknown type or severity debug message:\n" << std::quoted(e.what()) << std::endl;
+    }
     std::cout << "---------------------opengl-callback-end--------------" << std::endl;
 }

@@ -20,7 +20,7 @@ int main(int, char**)
     OpenGlDebugLogger debugging;
     debugging.SetContextDebugOption();
 
-    GLFWwindow* window = glfwCreateWindow(640, 480, "Hello Triangle", NULL, NULL);
+    GLFWwindow* window{glfwCreateWindow(640, 480, "Hello Triangle", NULL, NULL)};
     if (!window)
     {
         std::cout << "Could not create window" << std::endl;
@@ -37,6 +37,7 @@ int main(int, char**)
     }
 
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << std::endl;
+    debugging.Enable();
 
     constexpr unsigned vertex_components{2};
     constexpr unsigned unique_vertices{8};
@@ -75,13 +76,13 @@ int main(int, char**)
     glGenBuffers(1, &vertex_buffer_object);
     constexpr auto vertex_buffer_type{GL_ARRAY_BUFFER};
     glBindBuffer(vertex_buffer_type, vertex_buffer_object);
-    glBufferData(vertex_buffer_type, vertices.size() * sizeof(float), &vertices, GL_STREAM_DRAW);
+    glBufferData(vertex_buffer_type, vertices.size() * sizeof(float), &vertices, GL_STATIC_DRAW);
 
     GLuint index_buffer_object{};
     glGenBuffers(1, &index_buffer_object);
     constexpr auto index_buffer_type{GL_ELEMENT_ARRAY_BUFFER};
     glBindBuffer(index_buffer_type, index_buffer_object);
-    glBufferData(index_buffer_type, indices.size() * sizeof(unsigned), &indices, GL_STREAM_DRAW);
+    glBufferData(index_buffer_type, indices.size() * sizeof(unsigned), &indices, GL_STATIC_DRAW);
 
     constexpr auto normalized{GL_FALSE};
     constexpr auto vertex_datatype{GL_FLOAT};
