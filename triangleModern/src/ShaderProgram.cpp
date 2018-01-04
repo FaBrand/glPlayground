@@ -4,17 +4,24 @@ ShaderProgram::ShaderProgram(const VertexShader& vs, const FragmentShader& fs)
 {
     program_ = glCreateProgram();
 
-    const auto vs_id = dynamic_cast<const Shader&>(vs).GetShaderId();
-    const auto fs_id = dynamic_cast<const Shader&>(fs).GetShaderId();
-
-    glAttachShader(program_, vs_id);
-    glAttachShader(program_, fs_id);
+    AttachShader(vs);
+    AttachShader(fs);
 
     glLinkProgram(program_);
     glValidateProgram(program_);
 
-    glDeleteShader(vs_id);
-    glDeleteShader(fs_id);
+    DeleteShader(vs);
+    DeleteShader(fs);
+}
+
+void ShaderProgram::AttachShader(const Shader& shader) const
+{
+    glAttachShader(program_, shader.GetShaderId());
+}
+
+void ShaderProgram::DeleteShader(const Shader& shader) const
+{
+    glDeleteShader(shader.GetShaderId());
 }
 
 void ShaderProgram::Bind() const

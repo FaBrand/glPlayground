@@ -13,6 +13,8 @@ class ShaderProgram
     void Unbind() const;
 
   private:
+    void AttachShader(const Shader& shader) const;
+    void DeleteShader(const Shader& shader) const;
     GLuint program_;
 };
 
