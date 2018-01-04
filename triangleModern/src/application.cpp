@@ -7,6 +7,65 @@
 #include <memory>
 #include <string>
 
+void APIENTRY OpenGlDebugCallbackFunction(GLenum /* source */,
+                                          GLenum type,
+                                          GLuint id,
+                                          GLenum severity,
+                                          GLsizei /* length */,
+                                          const GLchar* message,
+                                          const void* /* userParam */)
+{
+
+    std::cout << "---------------------opengl-callback-start------------" << std::endl;
+    std::cout << "message: " << message << std::endl;
+    std::cout << "type: ";
+    switch (type)
+    {
+        case GL_DEBUG_TYPE_ERROR:
+            std::cout << "ERROR";
+            break;
+        case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+            std::cout << "DEPRECATED_BEHAVIOR";
+            break;
+        case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+            std::cout << "UNDEFINED_BEHAVIOR";
+            break;
+        case GL_DEBUG_TYPE_PORTABILITY:
+            std::cout << "PORTABILITY";
+            break;
+        case GL_DEBUG_TYPE_PERFORMANCE:
+            std::cout << "PERFORMANCE";
+            break;
+        case GL_DEBUG_TYPE_OTHER:
+            std::cout << "OTHER";
+            break;
+    }
+    std::cout << std::endl;
+
+    std::cout << "id: " << id << std::endl;
+    std::cout << "severity: ";
+    switch (severity)
+    {
+        case GL_DEBUG_SEVERITY_LOW:
+            std::cout << "LOW";
+            break;
+        case GL_DEBUG_SEVERITY_MEDIUM:
+            std::cout << "MEDIUM";
+            break;
+        case GL_DEBUG_SEVERITY_HIGH:
+            std::cout << "HIGH";
+            break;
+        case GL_DEBUG_SEVERITY_NOTIFICATION:
+            std::cout << "NOTIFICATION";
+            break;
+        default:
+            std::cout << "UNKNOWN";
+            break;
+    }
+    std::cout << std::endl;
+    std::cout << "---------------------opengl-callback-end--------------" << std::endl;
+}
+
 GLuint CompileShader(GLuint type, const std::string& source_file_path)
 {
 
@@ -26,6 +85,7 @@ GLuint CompileShader(GLuint type, const std::string& source_file_path)
 
     int result;
     glGetShaderiv(shader_id, GL_COMPILE_STATUS, &result);
+
     if (!result)
     {
         int length;
@@ -63,12 +123,20 @@ GLuint CreateShader(const std::string& vertex_shader_file, const std::string& fr
 
 int main(int, char**)
 {
+    if (!GL_VERSION_4_3)
+    {
+        std::cout << "OpenGl 4.3 not supported.\n"
+                  << "Update Graphics Driver!" << std::endl;
+        return -1;
+    }
+
     if (!glfwInit())
     {
         std::cout << "Could not initialize glfw" << std::endl;
         return -1;
     }
 
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
     GLFWwindow* window = glfwCreateWindow(640, 480, "Hello Triangle", NULL, NULL);
     if (!window)
     {
@@ -86,6 +154,19 @@ int main(int, char**)
     }
 
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << std::endl;
+
+    if (glDebugMessageCallback)
+    {
+        std::cout << "Register OpenGL debug callback " << std::endl;
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+        glDebugMessageCallback(OpenGlDebugCallbackFunction, nullptr);
+        GLuint unusedIds = 0;
+        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, &unusedIds, true);
+    }
+    else
+    {
+        std::cout << "glDebugMessageCallback not available" << std::endl;
+    }
 
     constexpr unsigned vertex_components{2};
     constexpr unsigned unique_vertices{8};
@@ -141,13 +222,6 @@ int main(int, char**)
         attribute_index, vertex_components, vertex_datatype, normalized, sizeof(float) * vertex_components, offset);
 
     glEnableVertexAttribArray(attribute_index);
-
-    if (!GL_VERSION_3_3)
-    {
-        std::cout << "OpenGl 3.3 not supported.\n"
-                  << "Update Graphics Driver!" << std::endl;
-        return -1;
-    }
 
     std::string vertex_shader_file{"shaders/basic.vshader"};
     std::string fragment_shader_file{"shaders/basic.fshader"};
