@@ -128,8 +128,11 @@ int main(int, char**)
         glDrawArrays(GL_TRIANGLES, 0, vertex_position);
 
         glfwSwapBuffers(window);
+
         glfwPollEvents();
     }
+
+    glDeleteProgram(shader);
 
     glfwTerminate();
 
