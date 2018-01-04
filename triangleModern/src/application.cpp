@@ -99,9 +99,17 @@ int main(int, char**)
     shader.Bind();
     shader.SetUniform("u_Color", value, 1.0f - value, 0.0f, 1.0f);
 
+    float value{0}, step{0.05};
     while (!glfwWindowShouldClose(window))
     {
         glClear(GL_COLOR_BUFFER_BIT);
+
+        if (value > 1.0f)
+            step = -step;
+        if (value < 0.0f)
+            step = -step;
+        value += step;
+        std::cout << value << std::endl;
 
         glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr);
 
