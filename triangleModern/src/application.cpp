@@ -97,15 +97,15 @@ int main(int, char**)
 
     glEnableVertexAttribArray(attribute_index);
 
-#define GLSL_VERSION_330_SUPPORTED false
-#if GLSL_VERSION_330_SUPPORTED
-    // Normally this should work. Probably some driver issues?
-    // OpenGl Version: 3.0 Mesa 17.2.4
-    // Failed to compile vertex shader!
-    // 0:1(10): error: GLSL 3.30 is not supported. Supported versions are: 1.10, 1.20, 1.30, 1.00 ES, and 3.00 ES
+    if (!GL_VERSION_3_3)
+    {
+        std::cout << "OpenGl 3.3 not supported.\n"
+                  << "Update Graphics Driver!" << std::endl;
+        return -1;
+    }
 
     std::string vertex_shader{
-        "#version 330 \n"
+        "#version 330 core \n"
         "\n"
         "layout(location = 0) in vec4 position;\n"
         "\n"
@@ -115,34 +115,14 @@ int main(int, char**)
         "}\n"};
 
     std::string fragment_shader{
-        "#version 330 \n"
+        "#version 330 core \n"
+        "\n"
+        "out vec4 color;\n"
         "\n"
         "void main()\n"
         "{\n"
-        "   gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);\n"
+        "   color = vec4(1.0, 0.0, 0.0, 1.0);\n"
         "}\n"};
-
-#else
-
-    std::string vertex_shader{
-        "#version 100 \n"
-        "\n"
-        "attribute vec2 position;\n"
-        "\n"
-        "void main()\n"
-        "{\n"
-        "   gl_Position = vec4(position, 0.0, 1.0);\n"
-        "}\n"};
-
-    std::string fragment_shader{
-        "#version 100 \n"
-        "\n"
-        "void main()\n"
-        "{\n"
-        "   gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);\n"
-        "}\n"};
-
-#endif
 
     GLuint shader = CreateShader(vertex_shader, fragment_shader);
     glUseProgram(shader);
