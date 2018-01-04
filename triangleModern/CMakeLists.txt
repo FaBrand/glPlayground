@@ -3,6 +3,7 @@ find_package(GLEW REQUIRED)
 
 add_executable(trianglesModern
     ./src/application.cpp
+    ./src/OpenGlDebugLogger.cpp
 )
 
 
