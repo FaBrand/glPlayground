@@ -6,6 +6,9 @@ add_executable(trianglesModern
 )
 
 
+configure_file(shaders/basic.vshader shaders/basic.vshader COPYONLY)
+configure_file(shaders/basic.fshader shaders/basic.fshader COPYONLY)
+
 target_include_directories(trianglesModern
     PUBLIC
         ${GLEW_INCLUDE_DIRS}

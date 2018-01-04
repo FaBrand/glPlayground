@@ -2,43 +2,52 @@
 #include <GLFW/glfw3.h>
 
 #include <array>
+#include <fstream>
 #include <iostream>
 #include <memory>
 #include <string>
 
-GLuint CompileShader(GLuint type, const std::string& source)
+GLuint CompileShader(GLuint type, const std::string& source_file_path)
 {
-    const auto id{glCreateShader(type)};
 
-    const char* src = source.c_str();
+    std::ifstream shader_file(source_file_path);
+    if (!shader_file.is_open() || !shader_file.good())
+    {
+        std::cout << "Error while opening shader_file " << source_file_path << std::endl;
+    }
+
+    std::string source{std::istreambuf_iterator<char>(shader_file), std::istreambuf_iterator<char>()};
+
+    const char* source_string = source.c_str();
+    const auto shader_id{glCreateShader(type)};
     constexpr auto source_count{1};
-    glShaderSource(id, source_count, &src, nullptr);
-    glCompileShader(id);
+    glShaderSource(shader_id, source_count, &source_string, nullptr);
+    glCompileShader(shader_id);
 
     int result;
-    glGetShaderiv(id, GL_COMPILE_STATUS, &result);
+    glGetShaderiv(shader_id, GL_COMPILE_STATUS, &result);
     if (!result)
     {
         int length;
-        glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
+        glGetShaderiv(shader_id, GL_INFO_LOG_LENGTH, &length);
         auto output = std::make_unique<char[]>(length);
 
-        glGetShaderInfoLog(id, length, &length, output.get());
+        glGetShaderInfoLog(shader_id, length, &length, output.get());
         std::cout << "Failed to compile " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader!"
                   << std::endl;
 
         std::cout << output.get() << std::endl;
-        glDeleteShader(id);
+        glDeleteShader(shader_id);
         return 0;
     }
-    return id;
+    return shader_id;
 }
 
-GLuint CreateShader(const std::string& vertex_shader, const std::string& fragment_shader)
+GLuint CreateShader(const std::string& vertex_shader_file, const std::string& fragment_shader_file)
 {
     GLuint program = glCreateProgram();
-    GLuint vs = CompileShader(GL_VERTEX_SHADER, vertex_shader);
-    GLuint fs = CompileShader(GL_FRAGMENT_SHADER, fragment_shader);
+    GLuint vs = CompileShader(GL_VERTEX_SHADER, vertex_shader_file);
+    GLuint fs = CompileShader(GL_FRAGMENT_SHADER, fragment_shader_file);
 
     glAttachShader(program, vs);
     glAttachShader(program, fs);
@@ -104,27 +113,10 @@ int main(int, char**)
         return -1;
     }
 
-    std::string vertex_shader{
-        "#version 330 core \n"
-        "\n"
-        "layout(location = 0) in vec4 position;\n"
-        "\n"
-        "void main()\n"
-        "{\n"
-        "   gl_Position = position;\n"
-        "}\n"};
+    std::string vertex_shader_file{"shaders/basic.vshader"};
+    std::string fragment_shader_file{"shaders/basic.fshader"};
 
-    std::string fragment_shader{
-        "#version 330 core \n"
-        "\n"
-        "out vec4 color;\n"
-        "\n"
-        "void main()\n"
-        "{\n"
-        "   color = vec4(1.0, 0.0, 0.0, 1.0);\n"
-        "}\n"};
-
-    GLuint shader = CreateShader(vertex_shader, fragment_shader);
+    GLuint shader = CreateShader(vertex_shader_file, fragment_shader_file);
     glUseProgram(shader);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
