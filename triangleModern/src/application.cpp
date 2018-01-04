@@ -87,9 +87,18 @@ int main(int, char**)
 
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << std::endl;
 
-    constexpr unsigned vertex_position{3};
+    constexpr unsigned vertex_position{6};
     constexpr unsigned vertex_components{2};
-    std::array<float, vertex_position * vertex_components> positions{-0.5f, -0.5f, 0.0f, 0.5f, 0.5f, -0.5f};
+    std::array<float, vertex_position * vertex_components> positions{
+        // clang-format off
+        -0.5f , -0.5f ,
+         0.5f , -0.5f ,
+         0.5f , 0.5f  ,
+         0.5f , 0.5f  ,
+        -0.5f , 0.5f  ,
+        -0.5f , -0.5f
+        // clang-format on
+    };
 
     GLuint buffer_id{};
     glGenBuffers(1, &buffer_id);
