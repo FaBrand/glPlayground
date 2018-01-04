@@ -2,66 +2,12 @@
 #include <GLFW/glfw3.h>
 
 #include <array>
-#include <fstream>
 #include <iostream>
-#include <memory>
-#include <string>
 
+#include "FragmentShader.h"
 #include "OpenGlDebugLogger.h"
-
-GLuint CompileShader(GLuint type, const std::string& source_file_path)
-{
-
-    std::ifstream shader_file(source_file_path);
-    if (!shader_file.is_open() || !shader_file.good())
-    {
-        std::cout << "Error while opening shader_file " << source_file_path << std::endl;
-    }
-    std::string source{std::istreambuf_iterator<char>(shader_file), std::istreambuf_iterator<char>()};
-
-    const char* source_string = source.c_str();
-    const auto shader_id{glCreateShader(type)};
-    constexpr auto source_count{1};
-    glShaderSource(shader_id, source_count, &source_string, nullptr);
-    glCompileShader(shader_id);
-
-    int result;
-    glGetShaderiv(shader_id, GL_COMPILE_STATUS, &result);
-
-    if (!result)
-    {
-        int length;
-        glGetShaderiv(shader_id, GL_INFO_LOG_LENGTH, &length);
-        auto output = std::make_unique<char[]>(length);
-
-        glGetShaderInfoLog(shader_id, length, &length, output.get());
-        std::cout << "Failed to compile " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader!"
-                  << std::endl;
-
-        std::cout << output.get() << std::endl;
-        glDeleteShader(shader_id);
-        return 0;
-    }
-    return shader_id;
-}
-
-GLuint CreateShader(const std::string& vertex_shader_file, const std::string& fragment_shader_file)
-{
-    GLuint program = glCreateProgram();
-    GLuint vs = CompileShader(GL_VERTEX_SHADER, vertex_shader_file);
-    GLuint fs = CompileShader(GL_FRAGMENT_SHADER, fragment_shader_file);
-
-    glAttachShader(program, vs);
-    glAttachShader(program, fs);
-
-    glLinkProgram(program);
-    glValidateProgram(program);
-
-    glDeleteShader(vs);
-    glDeleteShader(fs);
-
-    return program;
-}
+#include "ShaderProgram.h"
+#include "VertexShader.h"
 
 int main(int, char**)
 {
@@ -147,11 +93,9 @@ int main(int, char**)
 
     glEnableVertexAttribArray(attribute_index);
 
-    std::string vertex_shader_file{"shaders/basic.vshader"};
-    std::string fragment_shader_file{"shaders/basic.fshader"};
+    ShaderProgram shader({"shaders/basic.vshader"}, {"shaders/basic.fshader"});
 
-    GLuint shader = CreateShader(vertex_shader_file, fragment_shader_file);
-    glUseProgram(shader);
+    shader.Bind();
 
     while (!glfwWindowShouldClose(window))
     {
@@ -164,7 +108,7 @@ int main(int, char**)
         glfwPollEvents();
     }
 
-    glDeleteProgram(shader);
+    shader.Unbind();
 
     glfwTerminate();
 

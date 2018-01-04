@@ -10,7 +10,7 @@ class OpenGlDebugLogger
     void Enable();
 
   private:
-    bool debugging_available{false};
+    bool debugging_available_{false};
     static const GLenum logging_level{GL_DEBUG_SEVERITY_LOW};
 
     void CheckDebuggerAvailability();

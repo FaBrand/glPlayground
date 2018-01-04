@@ -10,7 +10,7 @@ void OpenGlDebugLogger::Enable()
 {
     CheckDebuggerAvailability();
 
-    if (debugging_available)
+    if (debugging_available_)
     {
         EnableDebugging();
     }
@@ -38,15 +38,15 @@ void OpenGlDebugLogger::CheckDebuggerAvailability()
     {
         std::cout << "OpenGl 4.3 not supported.\n"
                   << "Update Graphics Driver!" << std::endl;
-        debugging_available = false;
+        debugging_available_ = false;
     }
     else if (glDebugMessageCallback)
     {
-        debugging_available = true;
+        debugging_available_ = true;
     }
     else
     {
-        debugging_available = false;
+        debugging_available_ = false;
     }
 }
 
@@ -57,7 +57,7 @@ void OpenGlDebugLogger::SetContextDebugOption() const
 
 OpenGlDebugLogger::~OpenGlDebugLogger()
 {
-    if (debugging_available)
+    if (debugging_available_)
     {
         glEnable(GL_DEBUG_OUTPUT);
         glDisable(GL_DEBUG_OUTPUT_SYNCHRONOUS);

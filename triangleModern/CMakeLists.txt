@@ -4,6 +4,10 @@ find_package(GLEW REQUIRED)
 add_executable(trianglesModern
     ./src/application.cpp
     ./src/OpenGlDebugLogger.cpp
+    ./src/FragmentShader.cpp
+    ./src/VertexShader.cpp
+    ./src/Shader.cpp
+    ./src/ShaderProgram.cpp
 )
 
 
