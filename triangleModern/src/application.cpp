@@ -3,6 +3,54 @@
 
 #include <array>
 #include <iostream>
+#include <memory>
+
+GLuint CompileShader(GLuint type, const std::string& source)
+{
+    const auto id{glCreateShader(type)};
+
+    const char* src = source.c_str();
+    constexpr auto source_count{1};
+    glShaderSource(id, source_count, &src, nullptr);
+    glCompileShader(id);
+
+    int result;
+    glGetShaderiv(id, GL_COMPILE_STATUS, &result);
+    if (!result)
+    {
+        int length;
+        glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
+        auto output = std::make_unique<char[]>(length);
+
+        glGetShaderInfoLog(id, length, &length, output.get());
+        std::cout << "Failed to compile" << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader!"
+                  << std::endl;
+
+        std::cout << output.get() << std::endl;
+        glDeleteShader(id);
+        return 0;
+    }
+    return id;
+}
+
+GLuint CreateShader(const std::string& vertex_shader, const std::string& fragment_shader)
+{
+    GLuint program = glCreateProgram();
+    GLuint vs = CompileShader(GL_VERTEX_SHADER, vertex_shader);
+    GLuint fs = CompileShader(GL_FRAGMENT_SHADER, fragment_shader);
+
+    glAttachShader(program, vs);
+    glAttachShader(program, fs);
+
+    glLinkProgram(program);
+    glValidateProgram(program);
+
+    glDeleteShader(vs);
+    glDeleteShader(fs);
+
+    return program;
+}
+
 int main(int, char**)
 {
     if (!glfwInit())
