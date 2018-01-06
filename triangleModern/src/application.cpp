@@ -65,14 +65,14 @@ int main(int, char**)
 
     std::array<float, unique_vertices * vertex_components> vertex_color_buffer{
         // clang-format off
+        0.2f , 0.3f , 0.8f ,
+        0.2f , 0.8f , 0.3f ,
         0.0f , 0.0f , 0.0f ,
-        0.0f , 1.0f , 0.0f ,
-        0.0f , 0.0f , 0.0f ,
-        0.0f , 1.0f , 0.0f ,
-        1.0f , 0.0f , 1.0f ,
-        1.0f , 1.0f , 1.0f ,
-        1.0f , 0.0f , 1.0f ,
-        1.0f , 1.0f , 1.0f
+        0.0f , 0.6f , 0.0f ,
+        0.4f , 0.0f , 1.0f ,
+        0.7f , 0.7f , 0.4f ,
+        0.3f , 0.0f , 0.8f ,
+        0.5f , 0.2f , 0.0f
         // clang-format on
     };
 
@@ -80,10 +80,10 @@ int main(int, char**)
     std::array<unsigned, vertex_position> indices{
         0, 1, 2, 3,  // Front
         4, 5, 6, 7,  // Back
-        0, 1, 4, 5,  // Top
-        3, 2, 6, 7,  // Bottom
-        0, 3, 7, 4,  // Right Side
-        1, 2, 6, 5   // Left Side
+        0, 3, 7, 4,  // Top
+        1, 2, 6, 5,  // Bottom
+        3, 2, 6, 7,  // Right Side
+        0, 1, 5, 4   // Left Side
 
     };
 
