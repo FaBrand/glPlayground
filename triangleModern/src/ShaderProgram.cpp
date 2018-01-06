@@ -40,6 +40,12 @@ void ShaderProgram::SetUniform(const char* uniform_name, float x, float y, float
     glUniform4f(uniform_location, x, y, z, a);
 }
 
+void ShaderProgram::SetUniform(const char* uniform_name, const glm::mat4& matrix)
+{
+    const auto uniform_location{GetUniformLocation(uniform_name)};
+    glUniformMatrix4fv(uniform_location, 1, GL_FALSE, &matrix[0][0]);
+}
+
 int ShaderProgram::GetUniformLocation(const char* uniform_name)
 {
     if (uniform_location_map.find(uniform_name) == uniform_location_map.end())

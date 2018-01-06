@@ -1,5 +1,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <glm/ext.hpp>
+#include <glm/glm.hpp>
 
 #include <array>
 #include <iostream>
@@ -8,6 +10,8 @@
 #include "OpenGlDebugLogger.h"
 #include "ShaderProgram.h"
 #include "VertexShader.h"
+
+#define GRAD2RAD(grad) ((grad) / 180.f * 3.14f)
 
 int main(int, char**)
 {
@@ -94,23 +98,38 @@ int main(int, char**)
 
     glEnableVertexAttribArray(attribute_index);
 
-    ShaderProgram shader({"shaders/basic.vshader"}, {"shaders/basic.fshader"});
+    glm::mat4 model_matrix{glm::mat4(1.f)};
+    glm::mat4 view_matrix = glm::lookAt(glm::vec3(5, 0, 10),  // Camera is at (4,3,3), in World Space
+                                        glm::vec3(0, 0, 0),   // and looks at the origin
+                                        glm::vec3(0, 1, 0)    // Head is up (set to 0,-1,0 to look upside-down)
+                                        );
+    glm::mat4 projection_matrix{glm::perspective(GRAD2RAD(55.0f), 640.f / 480.f, 0.1f, 20.0f)};
 
+    ShaderProgram shader({"shaders/basic.vshader"}, {"shaders/basic.fshader"});
     shader.Bind();
 
-    float value{0}, step{0.05};
+    float value{0}, step{0.01};
     while (!glfwWindowShouldClose(window))
     {
         glClear(GL_COLOR_BUFFER_BIT);
 
-        if (value > 1.0f)
-            step = -step;
-        if (value < 0.0f)
-            step = -step;
         value += step;
-        std::cout << value << std::endl;
 
-        shader.SetUniform("u_Color", value, 1.0f - value, 0.0f, 1.0f);
+        // Rotate model itself around y-axis
+        model_matrix = glm::rotate(GRAD2RAD(value), glm::vec3(0.f, 1.f, 0.f));
+
+        // Rotate camera around model in a circular motion
+        view_matrix =
+            glm::lookAt(glm::vec3(std::cos(value) * 5, std::sin(value) * 5, 5),  // Camera is at (4,3,3), in World space
+                        glm::vec3(0, 0, 0),                                      // and looks at the origin
+                        glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
+                        );
+
+        shader.SetUniform("u_model_matrix", model_matrix);
+        shader.SetUniform("u_view_matrix", view_matrix);
+        shader.SetUniform("u_projection_matrix", projection_matrix);
+        shader.SetUniform("u_Color", std::fabs(std::sin(value)), std::fabs(std::cos(value)), 0.0f, 1.0f);
+
         glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr);
 
         glfwSwapBuffers(window);
