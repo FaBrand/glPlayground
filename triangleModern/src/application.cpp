@@ -43,36 +43,42 @@ int main(int, char**)
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << std::endl;
     debugging.Enable();
 
-    constexpr unsigned vertex_components{2};
+    constexpr unsigned vertex_components{3};
     constexpr unsigned unique_vertices{8};
     std::array<float, unique_vertices * vertex_components> vertices{
         // clang-format off
-        // Vertices are
-        -0.5f , -0.5f ,
-         0.5f , -0.5f ,
-         0.5f , 0.5f  ,
-        -0.5f , 0.5f  ,
-         0.0f , 1.0f  ,
-         0.0f , -0.5f ,
-         0.5f , -1.0f ,
-        -0.5f , -1.0f
+        -0.5f , 0.5f  , 0.5f ,
+        -0.5f , -0.5f , 0.5f ,
+        0.5f  , -0.5f , 0.5f ,
+        0.5f  , 0.5f  , 0.5f ,
+        -0.5f , 0.5f  , -0.5f ,
+        -0.5f , -0.5f , -0.5f ,
+        0.5f  , -0.5f , -0.5f ,
+        0.5f  , 0.5f  , -0.5f
         // clang-format on
     };
 
-    constexpr unsigned vertex_position{4 * 3};
+    std::array<float, unique_vertices * vertex_components> vertex_color_buffer{
+        // clang-format off
+        0.0f , 0.0f , 0.0f ,
+        0.0f , 1.0f , 0.0f ,
+        0.0f , 0.0f , 0.0f ,
+        0.0f , 1.0f , 0.0f ,
+        1.0f , 0.0f , 1.0f ,
+        1.0f , 1.0f , 1.0f ,
+        1.0f , 0.0f , 1.0f ,
+        1.0f , 1.0f , 1.0f
+        // clang-format on
+    };
+
+    constexpr unsigned vertex_position{6 * 4};
     std::array<unsigned, vertex_position> indices{
-        0,
-        1,
-        2,  // First Triangle
-        2,
-        3,
-        0,  // Second Triangle
-        3,
-        4,
-        2,  // Third Triangle
-        5,
-        6,
-        7  // Fourth Triangle
+        0, 1, 2, 3,  // Front
+        4, 5, 6, 7,  // Back
+        0, 1, 4, 5,  // Top
+        3, 2, 6, 7,  // Bottom
+        0, 3, 7, 4,  // Right Side
+        1, 2, 6, 5   // Left Side
 
     };
 
@@ -95,8 +101,20 @@ int main(int, char**)
 
     glVertexAttribPointer(
         attribute_index, vertex_components, vertex_datatype, normalized, sizeof(float) * vertex_components, offset);
-
     glEnableVertexAttribArray(attribute_index);
+
+    GLuint colorbuffer;
+    glGenBuffers(1, &colorbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
+    glBufferData(GL_ARRAY_BUFFER, vertex_color_buffer.size() * sizeof(float), &vertex_color_buffer, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1,         // attribute. No particular reason for 1, but must match the layout in the shader
+                          3,         // size
+                          GL_FLOAT,  // type
+                          GL_FALSE,  // normalized?
+                          0,         // stride
+                          0          // array buffer offset
+                          );
 
     glm::mat4 model_matrix{glm::mat4(1.f)};
     glm::mat4 view_matrix = glm::lookAt(glm::vec3(5, 0, 10),  // Camera is at (4,3,3), in World Space
@@ -128,9 +146,8 @@ int main(int, char**)
         shader.SetUniform("u_model_matrix", model_matrix);
         shader.SetUniform("u_view_matrix", view_matrix);
         shader.SetUniform("u_projection_matrix", projection_matrix);
-        shader.SetUniform("u_Color", std::fabs(std::sin(value)), std::fabs(std::cos(value)), 0.0f, 1.0f);
 
-        glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr);
+        glDrawElements(GL_QUADS, indices.size(), GL_UNSIGNED_INT, nullptr);
 
         glfwSwapBuffers(window);
 
