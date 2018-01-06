@@ -40,6 +40,11 @@ int main(int, char**)
         return -1;
     }
 
+    // Enable depth test
+    glEnable(GL_DEPTH_TEST);
+    // Accept fragment if it closer to the camera than the former one
+    glDepthFunc(GL_LESS);
+
     std::cout << "OpenGl Version: " << glGetString(GL_VERSION) << std::endl;
     debugging.Enable();
 
@@ -129,7 +134,7 @@ int main(int, char**)
     float value{0}, step{0.01};
     while (!glfwWindowShouldClose(window))
     {
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         value += step;
 
