@@ -97,7 +97,6 @@ int main(int, char**)
     ShaderProgram shader({"shaders/basic.vshader"}, {"shaders/basic.fshader"});
 
     shader.Bind();
-    shader.SetUniform("u_Color", value, 1.0f - value, 0.0f, 1.0f);
 
     float value{0}, step{0.05};
     while (!glfwWindowShouldClose(window))
@@ -111,6 +110,7 @@ int main(int, char**)
         value += step;
         std::cout << value << std::endl;
 
+        shader.SetUniform("u_Color", value, 1.0f - value, 0.0f, 1.0f);
         glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr);
 
         glfwSwapBuffers(window);
