@@ -7,7 +7,7 @@ The main reason behind creating this was personal learning and playing around wi
 ## Package requirements
 Install glew as described [here](https://en.wikibooks.org/wiki/OpenGL_Programming/Installation/Linux#OpenGL_Installation_on_Linux)
 ```bash
-sudo apt-get install libglew-dev
+sudo apt-get install libglew-dev libglm-dev
 ```
 
 I decided to give glfw a try. The [Getting Started](http://www.glfw.org/docs/latest/quick_guide.html) is used here.
