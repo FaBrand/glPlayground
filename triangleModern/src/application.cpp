@@ -13,6 +13,27 @@
 
 #define GRAD2RAD(grad) ((grad) / 180.f * 3.14f)
 
+template <typename T>
+void SetYWidthOfBox(float height, T& vertex_array)
+{
+    height = std::max(std::fabs(height), 0.1f);
+
+    float top = height / 2;
+    float bottom = -height / 2;
+
+    // Set the Y coordinate of the vertices.
+    // The z-coordinate is pointing towards the camera
+    vertex_array[1] = top;
+    vertex_array[4] = bottom;
+    vertex_array[7] = bottom;
+    vertex_array[10] = top;
+
+    vertex_array[13] = top;
+    vertex_array[16] = bottom;
+    vertex_array[19] = bottom;
+    vertex_array[22] = top;
+}
+
 int main(int, char**)
 {
     if (!glfwInit())
@@ -42,6 +63,7 @@ int main(int, char**)
 
     // Enable depth test
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
     // Accept fragment if it closer to the camera than the former one
     glDepthFunc(GL_LESS);
 
@@ -81,9 +103,9 @@ int main(int, char**)
         0, 1, 2, 3,  // Front
         4, 5, 6, 7,  // Back
         0, 3, 7, 4,  // Top
-        1, 2, 6, 5,  // Bottom
+        1, 5, 6, 2,  // Bottom
         3, 2, 6, 7,  // Right Side
-        0, 1, 5, 4   // Left Side
+        0, 4, 5, 1   // Left Side
 
     };
 
@@ -110,8 +132,10 @@ int main(int, char**)
 
     GLuint colorbuffer;
     glGenBuffers(1, &colorbuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
-    glBufferData(GL_ARRAY_BUFFER, vertex_color_buffer.size() * sizeof(float), &vertex_color_buffer, GL_STATIC_DRAW);
+    constexpr auto colorbuffer_array_type{GL_ARRAY_BUFFER};
+    glBindBuffer(colorbuffer_array_type, colorbuffer);
+    glBufferData(
+        colorbuffer_array_type, vertex_color_buffer.size() * sizeof(float), &vertex_color_buffer, GL_STATIC_DRAW);
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1,         // attribute. No particular reason for 1, but must match the layout in the shader
                           3,         // size
@@ -138,8 +162,11 @@ int main(int, char**)
 
         value += step;
 
+        SetYWidthOfBox(std::cos(value) * 5, vertices);
+        glBindBuffer(vertex_buffer_type, vertex_buffer_object);
+        glBufferData(vertex_buffer_type, vertices.size() * sizeof(float), &vertices, GL_STATIC_DRAW);
         // Rotate model itself around y-axis
-        model_matrix = glm::rotate(GRAD2RAD(value), glm::vec3(0.f, 1.f, 0.f));
+        // model_matrix = glm::rotate(GRAD2RAD(value), glm::vec3(0.f, 1.f, 0.f));
 
         // Rotate camera around model in a circular motion
         view_matrix =
