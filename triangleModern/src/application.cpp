@@ -7,8 +7,10 @@
 #include <iostream>
 
 #include "FragmentShader.h"
+#include "IndexBuffer.h"
 #include "OpenGlDebugLogger.h"
 #include "ShaderProgram.h"
+#include "VertexBuffer.h"
 #include "VertexShader.h"
 
 #define GRAD2RAD(grad) ((grad) / 180.f * 3.14f)
@@ -63,6 +65,7 @@ int main(int, char**)
 
     // Enable depth test
     glEnable(GL_DEPTH_TEST);
+    // Don't draw faces facing away from the camera
     glEnable(GL_CULL_FACE);
     // Accept fragment if it closer to the camera than the former one
     glDepthFunc(GL_LESS);
@@ -101,7 +104,7 @@ int main(int, char**)
     constexpr unsigned vertex_position{6 * 4};
     std::array<unsigned, vertex_position> indices{
         0, 1, 2, 3,  // Front
-        4, 5, 6, 7,  // Back
+        4, 7, 6, 5,  // Back
         0, 3, 7, 4,  // Top
         1, 5, 6, 2,  // Bottom
         3, 2, 6, 7,  // Right Side
@@ -109,41 +112,50 @@ int main(int, char**)
 
     };
 
-    GLuint vertex_buffer_object{};
-    glGenBuffers(1, &vertex_buffer_object);
-    constexpr auto vertex_buffer_type{GL_ARRAY_BUFFER};
-    glBindBuffer(vertex_buffer_type, vertex_buffer_object);
-    glBufferData(vertex_buffer_type, vertices.size() * sizeof(float), &vertices, GL_STATIC_DRAW);
+    GLuint vao{0};
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
 
-    GLuint index_buffer_object{};
-    glGenBuffers(1, &index_buffer_object);
-    constexpr auto index_buffer_type{GL_ELEMENT_ARRAY_BUFFER};
-    glBindBuffer(index_buffer_type, index_buffer_object);
-    glBufferData(index_buffer_type, indices.size() * sizeof(unsigned), &indices, GL_STATIC_DRAW);
+    // Vertices
+    VertexBuffer vb(&vertices, vertices.size() * sizeof(float));
 
-    constexpr auto normalized{GL_FALSE};
-    constexpr auto vertex_datatype{GL_FLOAT};
-    constexpr const void* offset{0};
-    constexpr auto attribute_index{0};
-
-    glVertexAttribPointer(
-        attribute_index, vertex_components, vertex_datatype, normalized, sizeof(float) * vertex_components, offset);
-    glEnableVertexAttribArray(attribute_index);
-
-    GLuint colorbuffer;
-    glGenBuffers(1, &colorbuffer);
-    constexpr auto colorbuffer_array_type{GL_ARRAY_BUFFER};
-    glBindBuffer(colorbuffer_array_type, colorbuffer);
-    glBufferData(
-        colorbuffer_array_type, vertex_color_buffer.size() * sizeof(float), &vertex_color_buffer, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1,         // attribute. No particular reason for 1, but must match the layout in the shader
-                          3,         // size
-                          GL_FLOAT,  // type
-                          GL_FALSE,  // normalized?
-                          0,         // stride
-                          0          // array buffer offset
+    const std::size_t vertex_attrib_array_index{0};
+    glEnableVertexAttribArray(vertex_attrib_array_index);
+    glVertexAttribPointer(vertex_attrib_array_index,          // zero-th attribute, must match layout in shader
+                          vertex_components,                  // size
+                          GL_FLOAT,                           // type
+                          GL_FALSE,                           // normalized?
+                          sizeof(float) * vertex_components,  // stride, if 0 is passed OpenGl calculates the stride as
+                                                              // the product of the type and the size passed to it
+                                                              // e.g. sizeof(GL_FLOAT) * vertex_components
+                          0                                   // array buffer offset
                           );
+
+    // Color
+    VertexBuffer cb(&vertex_color_buffer, vertex_color_buffer.size() * sizeof(float));
+
+    const std::size_t color_attrib_array_index{1};
+    glEnableVertexAttribArray(color_attrib_array_index);
+    glVertexAttribPointer(color_attrib_array_index,           // first attribute, must match layout in shader
+                          vertex_components,                  // size
+                          GL_FLOAT,                           // type
+                          GL_FALSE,                           // normalized?
+                          sizeof(float) * vertex_components,  // stride, if 0 is passed OpenGl calculates the stride as
+                                                              // the product of the type and the size passed to it
+                                                              // e.g. sizeof(GL_FLOAT) * vertex_components
+                          0                                   // array buffer offset
+                          );
+
+    // Indices
+    IndexBuffer ib(&indices, indices.size());
+
+    // Shader
+    ShaderProgram shader({"shaders/basic.vshader"}, {"shaders/basic.fshader"});
+
+    glBindVertexArray(0);
+    shader.Unbind();
+    vb.Unbind();
+    ib.Unbind();
 
     glm::mat4 model_matrix{glm::mat4(1.f)};
     glm::mat4 view_matrix = glm::lookAt(glm::vec3(5, 0, 10),  // Camera is at (4,3,3), in World Space
@@ -152,9 +164,6 @@ int main(int, char**)
                                         );
     glm::mat4 projection_matrix{glm::perspective(GRAD2RAD(55.0f), 640.f / 480.f, 0.1f, 20.0f)};
 
-    ShaderProgram shader({"shaders/basic.vshader"}, {"shaders/basic.fshader"});
-    shader.Bind();
-
     float value{0}, step{0.01};
     while (!glfwWindowShouldClose(window))
     {
@@ -162,11 +171,13 @@ int main(int, char**)
 
         value += step;
 
-        SetYWidthOfBox(std::cos(value) * 5, vertices);
-        glBindBuffer(vertex_buffer_type, vertex_buffer_object);
-        glBufferData(vertex_buffer_type, vertices.size() * sizeof(float), &vertices, GL_STATIC_DRAW);
+        glBindVertexArray(vao);
+        shader.Bind();
+        vb.Bind();
+        ib.Bind();
+
         // Rotate model itself around y-axis
-        // model_matrix = glm::rotate(GRAD2RAD(value), glm::vec3(0.f, 1.f, 0.f));
+        model_matrix = glm::rotate(GRAD2RAD(value * 10), glm::vec3(0.f, 1.f, 0.f));
 
         // Rotate camera around model in a circular motion
         view_matrix =
@@ -187,6 +198,8 @@ int main(int, char**)
     }
 
     shader.Unbind();
+    vb.Unbind();
+    ib.Unbind();
 
     glfwTerminate();
 

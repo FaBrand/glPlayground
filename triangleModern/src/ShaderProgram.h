@@ -12,14 +12,11 @@ class ShaderProgram
 {
   public:
     ShaderProgram(const VertexShader& vs, const FragmentShader& fs);
+    ~ShaderProgram();
     void SetUniform(const char* uniform_name, float x, float y, float z, float a);
     void SetUniform(const char* uniform_name, const glm::mat4& matrix);
     void Bind() const;
     void Unbind() const;
-    GLint GetShader() const
-    {
-        return program_;
-    }
 
   private:
     void AttachShader(const Shader& shader) const;

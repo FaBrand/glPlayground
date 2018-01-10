@@ -14,6 +14,11 @@ ShaderProgram::ShaderProgram(const VertexShader& vs, const FragmentShader& fs)
     DeleteShader(fs);
 }
 
+ShaderProgram::~ShaderProgram()
+{
+    glDeleteProgram(program_);
+}
+
 void ShaderProgram::AttachShader(const Shader& shader) const
 {
     glAttachShader(program_, shader.GetShaderId());
@@ -31,7 +36,7 @@ void ShaderProgram::Bind() const
 
 void ShaderProgram::Unbind() const
 {
-    glDeleteProgram(program_);
+    glUseProgram(0);
 }
 
 void ShaderProgram::SetUniform(const char* uniform_name, float x, float y, float z, float a)
