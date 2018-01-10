@@ -7,6 +7,7 @@ add_executable(trianglesModern
     ./src/FragmentShader.cpp
     ./src/VertexShader.cpp
     ./src/VertexBuffer.cpp
+    ./src/IndexBuffer.cpp
     ./src/Shader.cpp
     ./src/ShaderProgram.cpp
 )
