@@ -15,27 +15,6 @@
 
 #define GRAD2RAD(grad) ((grad) / 180.f * 3.14f)
 
-template <typename T>
-void SetYWidthOfBox(float height, T& vertex_array)
-{
-    height = std::max(std::fabs(height), 0.1f);
-
-    float top = height / 2;
-    float bottom = -height / 2;
-
-    // Set the Y coordinate of the vertices.
-    // The z-coordinate is pointing towards the camera
-    vertex_array[1] = top;
-    vertex_array[4] = bottom;
-    vertex_array[7] = bottom;
-    vertex_array[10] = top;
-
-    vertex_array[13] = top;
-    vertex_array[16] = bottom;
-    vertex_array[19] = bottom;
-    vertex_array[22] = top;
-}
-
 int main(int, char**)
 {
     if (!glfwInit())
@@ -177,7 +156,11 @@ int main(int, char**)
         ib.Bind();
 
         // Rotate model itself around y-axis
-        model_matrix = glm::rotate(GRAD2RAD(value * 10), glm::vec3(0.f, 1.f, 0.f));
+        const auto frequency = 5.f;
+        const auto min_size = 0.02f;
+        model_matrix = glm::scale(glm::vec3(std::max(1.f + std::cos(value * frequency), min_size),
+                                            std::max(1.f + std::sin(value * frequency), min_size),
+                                            1.f));
 
         // Rotate camera around model in a circular motion
         view_matrix =
