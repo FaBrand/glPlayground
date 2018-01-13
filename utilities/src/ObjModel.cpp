@@ -65,17 +65,19 @@ ObjModel::ObjModel(const std::string& obj_file)
                 return;
             }
 
+            // indices 2 and 1 swappe to invert winding order
+
             vertex_indices_.push_back(vertexIndex[0] - 1);
-            vertex_indices_.push_back(vertexIndex[1] - 1);
             vertex_indices_.push_back(vertexIndex[2] - 1);
+            vertex_indices_.push_back(vertexIndex[1] - 1);
 
             uv_indices_.push_back(uvIndex[0] - 1);
-            uv_indices_.push_back(uvIndex[1] - 1);
             uv_indices_.push_back(uvIndex[2] - 1);
+            uv_indices_.push_back(uvIndex[1] - 1);
 
             normal_indices_.push_back(normalIndex[0] - 1);
-            normal_indices_.push_back(normalIndex[1] - 1);
             normal_indices_.push_back(normalIndex[2] - 1);
+            normal_indices_.push_back(normalIndex[1] - 1);
         }
         else
         {

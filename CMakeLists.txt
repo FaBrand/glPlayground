@@ -15,4 +15,5 @@ add_compile_options(-Wall -Wextra -Wpedantic)
 add_subdirectory(utilities)
 add_subdirectory(triangleLegacy)
 add_subdirectory(triangleModern)
+add_subdirectory(cubeWithNormals)
 
