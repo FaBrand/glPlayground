@@ -13,20 +13,17 @@ sudo apt-get install libglew-dev libglm-dev
 I decided to give glfw a try. The [Getting Started](http://www.glfw.org/docs/latest/quick_guide.html) is used here.
 glfw needs to be compiled and installed locally
 ```bash
-cd ~/ && git clone https://github.com/glfw/glfw.git
-mkdir ~/glfw/_build && cd $_
-cmake ../ -GNinja
-ninja
-sudo ninja install
+git clone https://github.com/glfw/glfw.git ~/glfw
+cmake -B~/glfw/_build -H~/glfw -GNinja -DCMAKE_BUILD_TYPE=RELEASEninja
+sudo ninja install -C ~/glfw/_build
 ```
 
 ## Building
 Simply copy paste
 
 ```bash
-mkdir _build && cd $_
-cmake ../ -GNinja -DCMAKE_EXPORT_COMPILE_COMMANDS=On
-ninja
+cmake -B_build -H. -GNinja -DCMAKE_EXPORT_COMPILE_COMMANDS=On
+ninja -C _build
 ```
 
 # Disclaimer
